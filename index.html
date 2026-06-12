@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WormsZone.io - Infinite Chaos Edition</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #050505; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        canvas { display: block; cursor: crosshair; }
+        #ui {
+            position: absolute; top: 20px; left: 20px; color: white;
+            pointer-events: none; user-select: none;
+            background: rgba(0, 0, 0, 0.6); padding: 20px; border-radius: 15px;
+            border: 1px solid #333; backdrop-filter: blur(5px);
+        }
+        .score-container { font-size: 24px; font-weight: bold; color: #ffcc00; }
+        .stats { font-size: 14px; color: #aaa; margin-top: 5px; }
+        #minimap {
+            position: absolute; bottom: 20px; right: 20px;
+            width: 150px; height: 150px; background: rgba(0,0,0,0.8);
+            border: 2px solid #444; border-radius: 50%; overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+
+<div id="ui">
+    <div class="score-container">LENGTH: <span id="scoreVal">20</span></div>
+    <div class="stats">
+        Status: <span id="status" style="color: #0f0;">Hunting</span><br>
+        Nearby Enemies: <span id="botCount">0</span>
+    </div>
+</div>
+
+<canvas id="gameCanvas"></canvas>
+
+<script>
+/**
+ * WORMS ZONE ENGINE CONFIG
+ */
+const WORLD_SIZE = 15000;      // Massive coordinate space
+const VIEW_DISTANCE = 1000;    // How far objects are "active"
+const MAX_BOTS_NEARBY = 35;    // Keep performance stable
+const BASE_SPEED = 3.5;
+const TURN_SPEED = 0.09;
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+let width, height;
+let mouse = { x: 0, y: 0 };
+let player;
+let bots = [];
+let foods = [];
+
+/**
+ * UTILITY FUNCTIONS
+ */
+function randomRange(min, max) { return Math.random() * (max - min) + min; }
+function getDist(x1, y1, x2, y2) { return Math.hypot(x2 - x1, y2 - y1); }
+
+/**
+ * WORM CLASS (Player & AI)
+ */
+class Worm {
+    constructor(x, y, color, name, isBot = true) {
+        this.name = name;
+        this.color = color;
+        this.isBot = isBot;
+        this.segments = [];
+        this.angle = Math.random() * Math.PI * 2;
+        this.radius = 12;
+        this.dead = false;
+        this.speed = BASE_SPEED;
+        
+        // Build initial body
+        for (let i = 0; i < 25; i++) {
+            this.segments.push({ x: x, y: y });
+        }
+    }
+
+    update() {
+        if (this.dead) return;
+
+        const head = this.segments[0];
+
+        if (this.isBot) {
+            // AI Behavior: Smooth wandering + avoid world edges
+            this.angle += randomRange(-0.15, 0.15);
+            if(head.x < 500 || head.x > WORLD_SIZE - 500 || head.y < 500 || head.y > WORLD_SIZE - 500) {
+                this.angle += 0.2;
+            }
+        } else {
+            // Player Logic: Follow mouse relative to screen center
+            const targetAngle = Math.atan2(mouse.y - height/2, mouse.x - width/2);
+            let diff = targetAngle - this.angle;
+            while (diff < -Math.PI) diff += Math.PI * 2;
+            while (diff > Math.PI) diff -= Math.PI * 2;
+            this.angle += diff * TURN_SPEED;
+        }
+
+        // Movement Physics
+        const newHead = {
+            x: head.x + Math.cos(this.angle) * this.speed,
+            y: head.y + Math.sin(this.angle) * this.speed
+        };
+
+        this.segments.unshift(newHead);
+        this.segments.pop();
+
+        this.checkFood();
+    }
+
+    checkFood() {
+        const head = this.segments[0];
+        for (let i = foods.length - 1; i >= 0; i--) {
+            const f = foods[i];
+            if (getDist(head.x, head.y, f.x, f.y) < this.radius + f.size) {
+                foods.splice(i, 1);
+                this.grow(f.value || 1);
+            }
+        }
+    }
+
+    grow(amount) {
+        const tail = this.segments[this.segments.length - 1];
+        for(let i=0; i < amount; i++) {
+            this.segments.push({ x: tail.x, y: tail.y });
+        }
+    }
+
+    die() {
+        if (this.dead) return;
+        this.dead = true;
+        // Transform body into food trail
+        this.segments.forEach((seg, index) => {
+            if (index % 3 === 0) {
+                foods.push({
+                    x: seg.x + randomRange(-5, 5),
+                    y: seg.y + randomRange(-5, 5),
+                    size: randomRange(4, 7),
+                    color: this.color,
+                    value: 3
+                });
+            }
+        });
+    }
+
+    draw(camX, camY) {
+        ctx.save();
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = this.color;
+        
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = this.radius * 2;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        ctx.beginPath();
+        ctx.moveTo(this.segments[0].x - camX, this.segments[0].y - camY);
+        for (let i = 1; i < this.segments.length; i++) {
+            ctx.lineTo(this.segments[i].x - camX, this.segments[i].y - camY);
+        }
+        ctx.stroke();
+
+        // Eyes
+        const head = this.segments[0];
+        ctx.fillStyle = "white";
+        const eyeX = head.x - camX + Math.cos(this.angle) * 7;
+        const eyeY = head.y - camY + Math.sin(this.angle) * 7;
+        ctx.beginPath();
+        ctx.arc(eyeX, eyeY, 5, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.restore();
+    }
+}
+
+/**
+ * ENGINE LOGIC
+ */
+function spawnSystem() {
+    // 1. Maintain background food
+    const head = player.segments[0];
+    while (foods.length < 500) {
+        foods.push({
+            x: randomRange(head.x - VIEW_DISTANCE, head.x + VIEW_DISTANCE),
+            y: randomRange(head.y - VIEW_DISTANCE, head.y + VIEW_DISTANCE),
+            size: randomRange(2, 4),
+            color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+            value: 1
+        });
+    }
+
+    // 2. Infinity Bot Spawner
+    // Remove far bots
+    bots = bots.filter(b => getDist(head.x, head.y, b.segments[0].x, b.segments[0].y) < VIEW_DISTANCE + 500);
+
+    // Spawn new bots at edge of screen
+    while (bots.length < MAX_BOTS_NEARBY) {
+        const ang = Math.random() * Math.PI * 2;
+        const dist = VIEW_DISTANCE;
+        bots.push(new Worm(
+            head.x + Math.cos(ang) * dist,
+            head.y + Math.sin(ang) * dist,
+            `hsl(${Math.random() * 360}, 80%, 60%)`,
+            "Enemy"
+        ));
+    }
+}
+
+function collisionSystem() {
+    const pHead = player.segments[0];
+
+    // Boundary check
+    if (pHead.x < 0 || pHead.x > WORLD_SIZE || pHead.y < 0 || pHead.y > WORLD_SIZE) {
+        player.die();
+        location.reload();
+    }
+
+    for (let b of bots) {
+        const bHead = b.segments[0];
+
+        // 1. Did player head hit bot body?
+        for (let i = 0; i < b.segments.length; i++) {
+            if (getDist(pHead.x, pHead.y, b.segments[i].x, b.segments[i].y) < player.radius + b.radius - 2) {
+                player.die();
+                setTimeout(() => location.reload(), 1500);
+            }
+        }
+        
+
+        // 2. Did bot head hit player body?
+        for (let i = 0; i < player.segments.length; i++) {
+            if (getDist(bHead.x, bHead.y, player.segments[i].x, player.segments[i].y) < b.radius + player.radius - 2) {
+                b.die();
+            }
+        }
+
+        // 3. Did bot hit another bot?
+        for (let other of bots) {
+            if (b === other) continue;
+            if (getDist(bHead.x, bHead.y, other.segments[0].x, other.segments[0].y) < b.radius + other.radius) {
+                b.die();
+            }
+        }
+    }
+    bots = bots.filter(b => !b.dead);
+}
+
+function gameLoop() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+
+    spawnSystem();
+    collisionSystem();
+    player.update();
+    bots.forEach(b => b.update());
+
+    // Render
+    ctx.fillStyle = "#050505";
+    ctx.fillRect(0, 0, width, height);
+
+    const camX = player.segments[0].x - width / 2;
+    const camY = player.segments[0].y - height / 2;
+
+    // Draw Grid Lines
+    ctx.strokeStyle = "#111";
+    ctx.lineWidth = 2;
+    for (let x = 0; x < WORLD_SIZE; x += 200) {
+        ctx.beginPath(); ctx.moveTo(x - camX, -camY); ctx.lineTo(x - camX, WORLD_SIZE - camY); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(-camX, x - camY); ctx.lineTo(WORLD_SIZE - camX, x - camY); ctx.stroke();
+    }
+
+    // Draw Entities
+    foods.forEach(f => {
+        ctx.fillStyle = f.color;
+        ctx.beginPath();
+        ctx.arc(f.x - camX, f.y - camY, f.size, 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    bots.forEach(b => b.draw(camX, camY));
+    if(!player.dead) player.draw(camX, camY);
+
+    // Update Score
+    document.getElementById('scoreVal').innerText = player.segments.length;
+    document.getElementById('botCount').innerText = bots.length;
+
+    requestAnimationFrame(gameLoop);
+}
+
+// Controls
+window.addEventListener('mousemove', e => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+});
+
+// Start
+player = new Worm(WORLD_SIZE/2, WORLD_SIZE/2, "#00ffff", "Player", false);
+gameLoop();
+</script>
+</body>
+</html>
