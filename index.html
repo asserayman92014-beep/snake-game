@@ -1,6 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script type="application/ld+json">
+        {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Aser Snake Evolution",
+        "operatingSystem": "WINDOWS, OS X, ANDROID, IOS",
+        "applicationCategory": "GameApplication",
+        "browserRequirements": "Requires HTML5 support",
+        "author": {
+        "@type": "Person",
+        "name": "Asser"
+        },
+        "description": "Snake Game - لعبة الثعبان الحماسية المطورة من المبرمج آسر"
+        }
+    </script>
+    <meta property="og:title" content="Snake Game | لعبة ثعبان حماسية | Asser Snake Evolution">
+    <meta property="og:description" content="العب لعبة الثعبان الحماسية المطورة مجاناً على الإنترنت! تجربة أسطورية وممتعة من تطوير آسر.">
+    <meta property="og:image" content="favicon.png.jpeg">
+    <meta property="og:type" content="website">
+    <meta name="language" content="Arabic, English">
+    <meta name="keywords" content="snake game, aser snake evolution, asser snake game, لعبة ثعبان, لعبة الثعبان, لعبة ثعبان حماسية, العاب اون لاين, لعبة الثعبان اون لاين, جيت هاب ثعبان, اسر ثعبان">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Asser">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/jpeg" href="favicon.png.jpeg">
     <meta name="description" content="Play the ultimate Snake Game online for free! Experience Aser Snake Evolution, the most exciting, fast-paced classic arcade game. Developed by Aser.">
     
@@ -40,6 +64,10 @@
     </div>
 </div>
 
+<div style="text-align: center; margin-bottom: 10px; font-family: Arial, sans-serif; color: white;">
+    <label for="snakeColor" style="font-size: 18px; margin-right: 10px; font-weight: bold;">اختر لون الثعبان بتاعك: </label>
+    <input type="color" id="snakeColor" value="#4CAF50" style="cursor: pointer; border: none; border-radius: 5px; width: 40px; height: 40px; vertical-align: middle;">
+</div>    
 <canvas id="gameCanvas"></canvas>
 
 <script>
