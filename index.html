@@ -100,6 +100,12 @@ function getDist(x1, y1, x2, y2) { return Math.hypot(x2 - x1, y2 - y1); }
  */
 class Worm {
     constructor(x, y, color, name, isBot = true) {
+        for (let i = 0; i < snake.length; i++) {
+            ctx.fillStyle = (i == 0) ? "#4CAF50" : "#81C784"; 
+            ctx.strokeStyle = "#1e1e24";
+            ctx.fillRect(snake[i].x, snake[i].y, box, box);
+            ctx.strokeRect(snake[i].x, snake[i].y, box, box);
+        }
         this.name = name;
         this.color = color;
         this.isBot = isBot;
