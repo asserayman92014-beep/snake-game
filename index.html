@@ -45,23 +45,53 @@
             pointer-events: none; user-select: none;
             background: rgba(0, 0, 0, 0.6); padding: 20px; border-radius: 15px;
             border: 1px solid #333; backdrop-filter: blur(5px);
+            z-index: 10;
         }
         .score-container { font-size: 24px; font-weight: bold; color: #ffcc00; }
+        .best-score-container { font-size: 18px; font-weight: bold; color: #00ffcc; margin-top: 2px; }
         .stats { font-size: 14px; color: #aaa; margin-top: 5px; }
-        #minimap {
-            position: absolute; bottom: 20px; right: 20px;
-            width: 150px; height: 150px; background: rgba(0,0,0,0.8);
-            border: 2px solid #444; border-radius: 50%; overflow: hidden;
+        
+        /* تصميم لوحة المراكز (Leaderboard) */
+        #leaderboard {
+            position: absolute; top: 20px; right: 20px; color: white;
+            background: rgba(0, 0, 0, 0.75); padding: 15px 20px; border-radius: 15px;
+            border: 1px solid #444; backdrop-filter: blur(5px); width: 220px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5); pointer-events: none; user-select: none;
+            z-index: 10;
         }
+        #leaderboard h3 { margin: 0 0 10px 0; text-align: center; color: #ff3366; font-size: 18px; border-bottom: 1px solid #444; padding-bottom: 5px; }
+        .lb-item { display: flex; justify-content: space-between; margin: 4px 0; font-size: 14px; }
+        .lb-player { color: #00ffff; font-weight: bold; }
+
+        /* تصميم أداة اختيار الألوان */
+        #colorPickerContainer {
+            position: absolute; bottom: 20px; left: 20px; color: white;
+            background: rgba(0, 0, 0, 0.6); padding: 10px 15px; border-radius: 10px;
+            border: 1px solid #333; backdrop-filter: blur(5px); display: flex; align-items: center;
+            z-index: 10;
+        }
+        #colorPickerContainer label { font-size: 14px; font-weight: bold; margin-right: 10px; }
+        #snakeColor { cursor: pointer; border: none; border-radius: 5px; width: 35px; height: 35px; background: none; }
     </style>
 </head>
 <body>
 <div id="ui">
-    <div class="score-container">LENGTH: <span id="scoreVal">20</span></div>
+    <div class="score-container">LENGTH: <span id="scoreVal">25</span></div>
+    <div class="best-score-container">BEST: <span id="bestScoreVal">0</span></div>
     <div class="stats">
         Status: <span id="status" style="color: #0f0;">Hunting</span><br>
         Nearby Enemies: <span id="botCount">0</span>
     </div>
+</div>
+
+<div id="leaderboard">
+    <h3>🏆 Leaderboard</h3>
+    <div id="lbList"></div>
+</div>
+
+<div id="colorPickerContainer">
+    <label for="snakeColor">🎨 لون ثعبانك:</label>
+    <input type="color" id="snakeColor" value="#00ffff">
 </div>
    
 <canvas id="gameCanvas"></canvas>
@@ -70,20 +100,14 @@
 /**
  * WORMS ZONE ENGINE CONFIG
  */
-// 1. هنا بنخلي الكود يلقط اللون اللي أنت اخترته من الزرار حالاَ
-    const chosenColor = document.getElementById("snakeColor").value;
-    for (let i = 0; i < snake.length; i++) {
-        // 2. الرأس بتاخد اللون الأصلي، والجسم بياخد نفس اللون بس شفاف شوية عشان الشياكة
-        ctx.fillStyle = (i == 0) ? chosenColor : chosenColor + "B3";
-        ctx.strokeStyle = "#1e1e24";
-        ctx.fillRect(snake[i].x, snake[i].y, box, box);
-        ctx.strokeRect(snake[i].x, snake[i].y, box, box);
-    }
 const WORLD_SIZE = 15000;      // Massive coordinate space
 const VIEW_DISTANCE = 1000;    // How far objects are "active"
 const MAX_BOTS_NEARBY = 35;    // Keep performance stable
 const BASE_SPEED = 3.5;
 const TURN_SPEED = 0.09;
+
+// أسماء البوتات العشوائية الحماسية
+const botNames = ["البرق ⚡", "الزلزال 🌋", "الصياد 🏹", "التنين 🐉", "النجم ⭐", "المحارب ⚔️", "الرعد ⛈️", "الملك 👑", "آكل النقط 🍎", "الهروب الكبير 🏃", "شبح الليل 👻"];
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -93,6 +117,10 @@ let mouse = { x: 0, y: 0 };
 let player;
 let bots = [];
 let foods = [];
+
+// استعادة أفضل رقم مسجل
+let bestScore = localStorage.getItem('asserSnakeBestScore') ? parseInt(localStorage.getItem('asserSnakeBestScore')) : 0;
+document.getElementById('bestScoreVal').innerText = bestScore;
 
 /**
  * UTILITY FUNCTIONS
@@ -123,16 +151,21 @@ class Worm {
     update() {
         if (this.dead) return;
 
+        // تحديث لون اللاعب ديناميكياً
+        if (!this.isBot) {
+            this.color = document.getElementById("snakeColor").value;
+        }
+
         const head = this.segments[0];
 
         if (this.isBot) {
-            // AI Behavior: Smooth wandering + avoid world edges
+            // AI Behavior
             this.angle += randomRange(-0.15, 0.15);
             if(head.x < 500 || head.x > WORLD_SIZE - 500 || head.y < 500 || head.y > WORLD_SIZE - 500) {
                 this.angle += 0.2;
             }
         } else {
-            // Player Logic: Follow mouse relative to screen center
+            // Player Logic
             const targetAngle = Math.atan2(mouse.y - height/2, mouse.x - width/2);
             let diff = targetAngle - this.angle;
             while (diff < -Math.PI) diff += Math.PI * 2;
@@ -173,7 +206,6 @@ class Worm {
     die() {
         if (this.dead) return;
         this.dead = true;
-        // Transform body into food trail
         this.segments.forEach((seg, index) => {
             if (index % 3 === 0) {
                 foods.push({
@@ -221,31 +253,28 @@ class Worm {
  * ENGINE LOGIC
  */
 function spawnSystem() {
-    // 1. Maintain background food
     const head = player.segments[0];
     while (foods.length < 500) {
         foods.push({
             x: randomRange(head.x - VIEW_DISTANCE, head.x + VIEW_DISTANCE),
             y: randomRange(head.y - VIEW_DISTANCE, head.y + VIEW_DISTANCE),
             size: randomRange(2, 4),
-            color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+            color: hsl(${Math.random() * 360}, 100%, 50%),
             value: 1
         });
     }
 
-    // 2. Infinity Bot Spawner
-    // Remove far bots
     bots = bots.filter(b => getDist(head.x, head.y, b.segments[0].x, b.segments[0].y) < VIEW_DISTANCE + 500);
 
-    // Spawn new bots at edge of screen
     while (bots.length < MAX_BOTS_NEARBY) {
         const ang = Math.random() * Math.PI * 2;
         const dist = VIEW_DISTANCE;
+        const randomName = botNames[Math.floor(Math.random() * botNames.length)];
         bots.push(new Worm(
             head.x + Math.cos(ang) * dist,
             head.y + Math.sin(ang) * dist,
-            `hsl(${Math.random() * 360}, 80%, 60%)`,
-            "Enemy"
+            hsl(${Math.random() * 360}, 80%, 60%),
+            randomName
         ));
     }
 }
@@ -253,7 +282,6 @@ function spawnSystem() {
 function collisionSystem() {
     const pHead = player.segments[0];
 
-    // Boundary check
     if (pHead.x < 0 || pHead.x > WORLD_SIZE || pHead.y < 0 || pHead.y > WORLD_SIZE) {
         player.die();
         location.reload();
@@ -262,23 +290,19 @@ function collisionSystem() {
     for (let b of bots) {
         const bHead = b.segments[0];
 
-        // 1. Did player head hit bot body?
         for (let i = 0; i < b.segments.length; i++) {
             if (getDist(pHead.x, pHead.y, b.segments[i].x, b.segments[i].y) < player.radius + b.radius - 2) {
                 player.die();
-                setTimeout(() => location.reload(), 1500);
+                setTimeout(() => location.reload(), 1000);
             }
         }
         
-
-        // 2. Did bot head hit player body?
         for (let i = 0; i < player.segments.length; i++) {
             if (getDist(bHead.x, bHead.y, player.segments[i].x, player.segments[i].y) < b.radius + player.radius - 2) {
                 b.die();
             }
         }
 
-        // 3. Did bot hit another bot?
         for (let other of bots) {
             if (b === other) continue;
             if (getDist(bHead.x, bHead.y, other.segments[0].x, other.segments[0].y) < b.radius + other.radius) {
@@ -289,6 +313,36 @@ function collisionSystem() {
     bots = bots.filter(b => !b.dead);
 }
 
+// تحديث لوحة المراكز (Leaderboard)
+function updateLeaderboard() {
+    let allPlayers = [];
+    if (!player.dead) {
+        allPlayers.push({ name: player.name, score: player.segments.length, isPlayer: true });
+    }
+    bots.forEach(b => {
+        allPlayers.push({ name: b.name, score: b.segments.length, isPlayer: false });
+    });
+
+    allPlayers.sort((a, b) => b.score - a.score);
+
+    const lbList = document.getElementById('lbList');
+    lbList.innerHTML = '';
+
+    for (let i = 0; i < Math.min(5, allPlayers.length); i++) {
+        const p = allPlayers[i];
+        const item = document.createElement('div');
+        item.className = 'lb-item';
+        if (p.isPlayer) {
+            item.innerHTML = <span class="lb-player">${i+1}. ${p.name} (أنت)</span> <span>${p.score}</span>;
+        } else {
+            item.innerHTML = <span>${i+1}. ${p.name}</span> <span>${p.score}</span>;
+        }
+        lbList.appendChild(item);
+    }
+}
+
+setInterval(updateLeaderboard, 500);
+
 function gameLoop() {
     width = canvas.width = window.innerWidth;
     height = canvas.height = window.innerHeight;
@@ -298,14 +352,12 @@ function gameLoop() {
     player.update();
     bots.forEach(b => b.update());
 
-    // Render
     ctx.fillStyle = "#050505";
     ctx.fillRect(0, 0, width, height);
 
     const camX = player.segments[0].x - width / 2;
     const camY = player.segments[0].y - height / 2;
 
-    // Draw Grid Lines
     ctx.strokeStyle = "#111";
     ctx.lineWidth = 2;
     for (let x = 0; x < WORLD_SIZE; x += 200) {
@@ -313,7 +365,6 @@ function gameLoop() {
         ctx.beginPath(); ctx.moveTo(-camX, x - camY); ctx.lineTo(WORLD_SIZE - camX, x - camY); ctx.stroke();
     }
 
-    // Draw Entities
     foods.forEach(f => {
         ctx.fillStyle = f.color;
         ctx.beginPath();
@@ -324,18 +375,29 @@ function gameLoop() {
     bots.forEach(b => b.draw(camX, camY));
     if(!player.dead) player.draw(camX, camY);
 
-    // Update Score
-    document.getElementById('scoreVal').innerText = player.segments.length;
+    const currentScore = player.segments.length;
+    document.getElementById('scoreVal').innerText = currentScore;
     document.getElementById('botCount').innerText = bots.length;
+
+    if (currentScore > bestScore) {
+        bestScore = currentScore;
+        localStorage.setItem('asserSnakeBestScore', bestScore);
+        document.getElementById('bestScoreVal').innerText = bestScore;
+    }
 
     requestAnimationFrame(gameLoop);
 }
 
-// Controls
 window.addEventListener('mousemove', e => {
     mouse.x = e.clientX;
     mouse.y = e.clientY;
 });
+
+player = new Worm(WORLD_SIZE/2, WORLD_SIZE/2, "#00ffff", "Asser", false);
+gameLoop();
+</script>
+</body>
+</html>
 
 // Start
 player = new Worm(WORLD_SIZE/2, WORLD_SIZE/2, "#00ffff", "Player", false);
