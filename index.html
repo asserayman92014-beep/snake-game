@@ -74,6 +74,15 @@
 /**
  * WORMS ZONE ENGINE CONFIG
  */
+// 1. هنا بنخلي الكود يلقط اللون اللي أنت اخترته من الزرار حالاَ
+    const chosenColor = document.getElementById("snakeColor").value;
+    for (let i = 0; i < snake.length; i++) {
+        // 2. الرأس بتاخد اللون الأصلي، والجسم بياخد نفس اللون بس شفاف شوية عشان الشياكة
+        ctx.fillStyle = (i == 0) ? chosenColor : chosenColor + "B3";
+        ctx.strokeStyle = "#1e1e24";
+        ctx.fillRect(snake[i].x, snake[i].y, box, box);
+        ctx.strokeRect(snake[i].x, snake[i].y, box, box);
+    }
 const WORLD_SIZE = 15000;      // Massive coordinate space
 const VIEW_DISTANCE = 1000;    // How far objects are "active"
 const MAX_BOTS_NEARBY = 35;    // Keep performance stable
