@@ -237,7 +237,7 @@ function spawnSystem() {
             x: randomRange(head.x - VIEW_DISTANCE, head.x + VIEW_DISTANCE),
             y: randomRange(head.y - VIEW_DISTANCE, head.y + VIEW_DISTANCE),
             size: randomRange(2, 4),
-            color: hsl(${Math.random() * 360}, 100%, 50%),
+            color: `hsl(${Math.random() * 360}, 100%, 50%)`,
             value: 1
         });
     }
@@ -251,7 +251,7 @@ function spawnSystem() {
         bots.push(new Worm(
             head.x + Math.cos(ang) * dist,
             head.y + Math.sin(ang) * dist,
-            hsl(${Math.random() * 360}, 80%, 60%),
+            `hsl(${Math.random() * 360}, 80%, 60%)`,
             randomName
         ));
     }
@@ -310,9 +310,9 @@ function updateLeaderboard() {
         const item = document.createElement('div');
         item.className = 'lb-item';
         if (p.isPlayer) {
-            item.innerHTML = <span class="lb-player">${i+1}. ${p.name} (أنت)</span> <span>${p.score}</span>;
+            item.innerHTML = `<span class="lb-player">${i+1}. ${p.name} (أنت)</span> <span>${p.score}</span>`;
         } else {
-            item.innerHTML = <span>${i+1}. ${p.name}</span> <span>${p.score}</span>;
+            item.innerHTML = `<span>${i+1}. ${p.name}</span> <span>${p.score}</span>`;
         }
         lbList.appendChild(item);
     }
