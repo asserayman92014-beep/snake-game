@@ -100,8 +100,11 @@ function getDist(x1, y1, x2, y2) { return Math.hypot(x2 - x1, y2 - y1); }
  */
 class Worm {
     constructor(x, y, color, name, isBot = true) {
+        // 1. هنا بنخلي الكود يلقط اللون اللي أنت اخترته من الزرار حالاَ
+        const chosenColor = document.getElementById("snakeColor").value;
         for (let i = 0; i < snake.length; i++) {
-            ctx.fillStyle = (i == 0) ? "#4CAF50" : "#81C784"; 
+            // 2. الرأس بتاخد اللون الأصلي، والجسم بياخد نفس اللون بس شفاف شوية عشان الشياكة
+            ctx.fillStyle = (i == 0) ? chosenColor : chosenColor + "B3"; 
             ctx.strokeStyle = "#1e1e24";
             ctx.fillRect(snake[i].x, snake[i].y, box, box);
             ctx.strokeRect(snake[i].x, snake[i].y, box, box);
