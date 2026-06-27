@@ -1,56 +1,67 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game | لعبة ثعبان حماسية | Asser Snake Evolution</title>
+
+    <!-- الأداء وسرعة التحميل (FEO) ومنع تخزين الألوان القديمة (Cache-Control) -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="Arabic, English">
+    <meta name="author" content="Asser ayman">
+
+    <!-- الـ SEO والكلمات المفتاحية للموقع -->
+    <meta name="description" content="العب لعبة الثعبان الحماسية والمتطورة بالألوان ومنافسة البوتات مجاناً على الإنترنت! تجربة أسطورية وممتعة من تطوير Asser ayman وشركة ai.prog.">
+    <meta name="keywords" content="snake game, aser snake evolution, asser snake game, لعبة ثعبان, لعبة الثعبان, لعبة ثعبان حماسية, العاب اون لاين, لعبة الثعبان اون لاين, جيت هاب ثعبان, اسر ثعبان, ai.prog">
+
+    <!-- كود الـ GEO الأول (تهيئة محركات الذكاء الاصطناعي كلعبة فيديو) -->
     <script type="application/ld+json">
         {
         "@context": "https://schema.org",
         "@type": "VideoGame",
-        "name": "Snake Game",
+        "name": "Asser Snake Evolution",
         "author": {
         "@type": "Person",
         "name": "Asser ayman"
         },
-        "description": "لعبة الثعبان الأسطورية المطورة بالألوان ولوحة الصدارة ومنافسة البوتات.",
+        "publisher": {
+        "@type": "Organization",
+        "name": "ai.prog"
+        },
+        "description": "لعبة الثعبان الأسطورية المطورة بالألوان ولوحة الصدارة ومنافسة البوتات الذكية.",
         "genre": "Arcade Game",
         "playMode": "SinglePlayer"
         }
     </script>
+
+    <!-- كود الـ GEO الثاني (تعريف الموقع كتطبيق ويب متطور) -->
     <script type="application/ld+json">
         {
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
-        "name": "Aser Snake Evolution",
+        "name": "Asser Snake Evolution",
         "operatingSystem": "WINDOWS, OS X, ANDROID, IOS",
         "applicationCategory": "GameApplication",
         "browserRequirements": "Requires HTML5 support",
         "author": {
         "@type": "Person",
-        "name": "Asser"
+        "name": "Asser ayman"
         },
-        "description": "Snake Game - لعبة الثعبان الحماسية المطورة من المبرمج آسر"
+        "description": "Snake Game - لعبة الثعبان الحماسية المطورة من المبرمج آسر أيمن وشركة ai.prog"
         }
     </script>
+
+    <!-- الـ Open Graph (عشان لما تشير الرابط على الواتساب أو الفيسبوك يظهر بشكل احترافي) -->
     <meta property="og:title" content="Snake Game | لعبة ثعبان حماسية | Asser Snake Evolution">
     <meta property="og:description" content="العب لعبة الثعبان الحماسية المطورة مجاناً على الإنترنت! تجربة أسطورية وممتعة من تطوير آسر.">
     <meta property="og:image" content="favicon.png.jpeg">
     <meta property="og:type" content="website">
-    <meta name="language" content="Arabic, English">
-    <meta name="keywords" content="snake game, aser snake evolution, asser snake game, لعبة ثعبان, لعبة الثعبان, لعبة ثعبان حماسية, العاب اون لاين, لعبة الثعبان اون لاين, جيت هاب ثعبان, اسر ثعبان">
-    <meta name="robots" content="index, follow">
-    <meta name="author" content="Asser">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/jpeg" href="favicon.png.jpeg">
-    <meta name="description" content="Play the ultimate Snake Game online for free! Experience Aser Snake Evolution, the most exciting, fast-paced classic arcade game. Developed by Aser.">
     
-    <meta name="keywords" content="snake game, aser snake evolution, play snake game, free online snake game, classic snake, arcade snake game, لعبة الثعبان, لعبة ثعبان أونلاين">
-    
-    <title>Snake Game | لعبة ثعبان حماسية | Asser Snake Evolution</title>
-    
+    <!-- إعلانات جوجل مدمجة بشكل سليم -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5028170875818281" crossorigin="anonymous"></script>
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <style>
         body { margin: 0; overflow: hidden; background: #050505; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -112,9 +123,9 @@
 <script>
 const WORLD_SIZE = 15000;      
 const VIEW_DISTANCE = 1000;    
-const MAX_BOTS_NEARBY = 35;    
-const BASE_SPEED = 4;
-const TURN_SPEED = 0.5;
+const MAX_BOTS_NEARBY = 18;    // تم تعديلها لـ 18 لمنع التقطيع والـ Lag تماماً
+const BASE_SPEED = 4;        // تم رفع السرعة لـ 5.5 لتصبح اللعبة طيارة وحماسية
+const TURN_SPEED = 0.5;       // تم تعديل سرعة الدوران لتناسب السرعة الجديدة بسلاسة
 
 const botNames = ["البرق ⚡", "الزلزال 🌋", "الصياد 🏹", "التنين 🐉", "النجم ⭐", "المحارب ⚔️", "الرعد ⛈️", "الملك 👑", "آكل النقط 🍎", "الهروب الكبير 🏃", "شبح الليل 👻"];
 
