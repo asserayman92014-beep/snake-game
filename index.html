@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Snake Game | لعبة ثعبان حماسية | Asser Snake Evolution</title>
+
     <!-- الأداء وسرعة التحميل (FEO) ومنع تخزين الألوان القديمة (Cache-Control) -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -52,7 +53,7 @@
         }
     </script>
 
-    <!-- الـ Open Graph -->
+    <!-- الـ Open Graph (عشان لما تشير الرابط على الواتساب أو الفيسبوك يظهر بشكل احترافي) -->
     <meta property="og:title" content="Snake Game | لعبة ثعبان حماسية | Asser Snake Evolution">
     <meta property="og:description" content="العب لعبة الثعبان الحماسية المطورة مجاناً على الإنترنت! تجربة أسطورية وممتعة من تطوير آسر.">
     <meta property="og:image" content="favicon.png.jpeg">
@@ -63,123 +64,104 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5028170875818281" crossorigin="anonymous"></script>
     
     <style>
-        body { margin: 0; overflow: hidden; background: #050505; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; direction: rtl; }
+        body { margin: 0; overflow: hidden; background: #050505; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         canvas { display: block; cursor: crosshair; }
         
-        /* تصميم الـ UI العلوي ليكون مرناً على الموبايل والكمبيوتر */
+        /* تصميم مرن لواجهة اللعبة تصغر وتكبر حسب الشاشة */
         #ui {
-            position: absolute; top: 15px; left: 15px; color: white;
+            position: absolute; top: 12px; left: 12px; color: white;
             pointer-events: none; user-select: none;
-            background: rgba(0, 0, 0, 0.65); padding: 12px 18px; border-radius: 12px;
+            background: rgba(0, 0, 0, 0.6); padding: 12px; border-radius: 12px;
             border: 1px solid #333; backdrop-filter: blur(5px);
-            z-index: 10; display: none; text-align: left;
-            max-width: 40vw;
+            z-index: 10; max-width: 40vw; display: none; /* تظهر فقط عند بدء اللعب */
         }
-        .score-container { font-size: 5vw; font-weight: bold; color: #ffcc00; }
-        .best-score-container { font-size: 4vw; font-weight: bold; color: #00ffcc; margin-top: 2px; }
-        .stats { font-size: 3vw; color: #aaa; margin-top: 5px; }
+        .score-container { font-size: 3.8vw; font-weight: bold; color: #ffcc00; }
+        .best-score-container { font-size: 3vw; font-weight: bold; color: #00ffcc; margin-top: 2px; }
+        .stats { font-size: 2.2vw; color: #aaa; margin-top: 5px; }
         
-        /* لوحة الصدارة المرنة */
         #leaderboard {
-            position: absolute; top: 15px; right: 15px; color: white;
-            background: rgba(0, 0, 0, 0.75); padding: 12px 15px; border-radius: 12px;
-            border: 1px solid #444; backdrop-filter: blur(5px); width: 35vw; max-width: 220px;
+            position: absolute; top: 12px; right: 12px; color: white;
+            background: rgba(0, 0, 0, 0.75); padding: 10px 15px; border-radius: 12px;
+            border: 1px solid #444; backdrop-filter: blur(5px); width: 30vw; max-width: 220px;
             box-shadow: 0 0 15px rgba(0,0,0,0.5); pointer-events: none; user-select: none;
-            z-index: 10; display: none; text-align: right;
+            z-index: 10; display: none; /* يظهر فقط عند بدء اللعب */
         }
-        #leaderboard h3 { margin: 0 0 8px 0; text-align: center; color: #ff3366; font-size: 4.5vw; border-bottom: 1px solid #444; padding-bottom: 5px; }
-        .lb-item { display: flex; justify-content: space-between; margin: 5px 0; font-size: 3.5vw; direction: ltr; }
+        #leaderboard h3 { margin: 0 0 5px 0; text-align: center; color: #ff3366; font-size: 3.5vw; border-bottom: 1px solid #444; padding-bottom: 3px; }
+        .lb-item { display: flex; justify-content: space-between; margin: 3px 0; font-size: 2.5vw; }
         .lb-player { color: #00ffff; font-weight: bold; }
 
-        /* شاشات البداية والنهاية الاحترافية (GUI مركزية مرنة) */
-        .modal-screen {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(10, 10, 10, 0.95); border: 2px solid #ff3366;
-            border-radius: 20px; padding: 30px; color: white; text-align: center;
-            box-shadow: 0 0 30px rgba(255, 51, 102, 0.4); z-index: 100;
-            width: 80vw; max-width: 400px; backdrop-filter: blur(10px);
-        }
-        
-        .modal-screen h1 { margin-top: 0; font-size: 6.5vw; color: #00ffff; text-shadow: 0 0 10px #00ffff; }
-        .modal-screen h2 { margin-top: 0; font-size: 7vw; color: #ff3366; text-shadow: 0 0 10px #ff3366; }
-        .modal-screen p { font-size: 3.8vw; }
-        
-        .menu-btn {
-            background: linear-gradient(45deg, #ff3366, #ff00cc); color: white;
-            border: none; border-radius: 10px; padding: 12px 20px; font-size: 4.5vw;
-            font-weight: bold; cursor: pointer; margin: 10px 0; width: 100%;
-            transition: 0.3s; box-shadow: 0 4px 15px rgba(255, 0, 204, 0.3);
-        }
-        .menu-btn.online { background: linear-gradient(45deg, #00ffff, #0066ff); box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3); }
-        .menu-btn:hover { transform: scale(1.03); filter: brightness(1.2); }
-        
-        .color-section {
-            background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px;
-            margin-bottom: 20px; border: 1px solid #333; display: flex; align-items: center; justify-content: center; gap: 15px;
-        }
-        .color-section label { font-size: 4vw; font-weight: bold; }
-        #snakeColor { cursor: pointer; border: none; border-radius: 5px; width: 45px; height: 45px; background: none; }
-        
-        .game-stats-box { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin: 15px 0; font-size: 4vw; text-align: right; line-height: 1.6; }
-        .game-stats-box span { color: #ffcc00; font-weight: bold; }
-
-        /* تعديل الميديا كويري لتثبيت الأحجام الاحترافية للكمبيوتر والشاشات الكبيرة */
+        /* شاشات الكومبيوتر الكبيرة لتثبيت الأبعاد */
         @media (min-width: 768px) {
+            #ui { padding: 20px; top: 20px; left: 20px; max-width: 300px; }
             .score-container { font-size: 24px; }
             .best-score-container { font-size: 18px; }
             .stats { font-size: 14px; }
+            #leaderboard { padding: 15px 20px; top: 20px; right: 20px; width: 220px; }
             #leaderboard h3 { font-size: 18px; }
             .lb-item { font-size: 14px; }
-            #ui { padding: 20px; top: 20px; left: 20px; max-width: 220px; }
-            #leaderboard { padding: 15px 20px; top: 20px; right: 20px; width: 220px; }
-            .modal-screen h1 { font-size: 28px; }
-            .modal-screen h2 { font-size: 32px; }
-            .modal-screen p { font-size: 14px; }
-            .menu-btn { font-size: 18px; }
-            .color-section label { font-size: 16px; }
-            .game-stats-box { font-size: 16px; }
         }
+
+        /* تصميم شاشة البداية والنهاية الاحترافية */
+        .modal-screen {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(10, 10, 10, 0.9); border: 2px solid #ff3366; box-shadow: 0 0 30px rgba(255, 51, 102, 0.4);
+            padding: 25px; border-radius: 20px; text-align: center; color: white; z-index: 100;
+            width: 85vw; max-width: 420px; box-sizing: border-box; backdrop-filter: blur(8px);
+        }
+        .modal-screen h1 { margin: 0 0 15px 0; font-size: 26px; color: #ff3366; text-shadow: 0 0 10px rgba(255,51,102,0.5); }
+        .modal-screen h2 { margin: 0 0 15px 0; font-size: 24px; color: #ff3366; }
+        .modal-screen p { font-size: 14px; color: #ccc; margin: 5px 0 20px 0; }
+        
+        .color-section { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 15px; }
+        .color-section label { font-size: 15px; font-weight: bold; }
+        #snakeColor { cursor: pointer; border: none; border-radius: 5px; width: 40px; height: 40px; background: none; }
+        
+        .btn-container { display: flex; flex-direction: column; gap: 12px; }
+        .menu-btn {
+            padding: 12px 20px; font-size: 16px; font-weight: bold; border: none; border-radius: 10px; cursor: pointer;
+            transition: all 0.2s ease; text-transform: uppercase;
+        }
+        .btn-offline { background: #00ffcc; color: #000; box-shadow: 0 0 15px rgba(0,255,204,0.3); }
+        .btn-offline:hover { background: #fff; transform: scale(1.03); }
+        .btn-online { background: #0099ff; color: #fff; box-shadow: 0 0 15px rgba(0,153,255,0.3); }
+        .btn-online:hover { background: #fff; color: #000; transform: scale(1.03); }
+        .btn-retry { background: #ff3366; color: #fff; box-shadow: 0 0 15px rgba(255,51,102,0.3); margin-top: 15px; width: 100%; }
+        .btn-retry:hover { background: #fff; color: #000; transform: scale(1.03); }
+
+        .rank-info { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-top: 15px; font-size: 16px; line-height: 1.6; text-align: right; direction: rtl; }
+        .rank-info span { color: #ffcc00; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<!-- شاشة البداية الاحترافية اختيار اللون والوضع -->
-<div id="startMenu" class="modal-screen">
+<!-- شاشة البداية الاحترافية -->
+<div id="startScreen" class="modal-screen">
     <h1>Asser Snake Evolution</h1>
-    <p style="color: #aaa; margin-bottom: 20px;">مرحباً بك في لعبة الثعبان الأسطورية المطورة</p>
+    <p>شركة ai.prog ترحب بكم في الإصدار المطور</p>
     
     <div class="color-section">
         <label for="snakeColor">🎨 اختر لون ثعبانك:</label>
         <input type="color" id="snakeColor" value="#00ffff">
     </div>
-    
-    <button class="menu-btn" onclick="startGame(false)">لعب أوفلاين (مع البوتات) 🤖</button>
-    <button class="menu-btn online" onclick="startOnlineMatchmaking()">لعب أونلاين (قريباً) 🌐</button>
-    <p style="font-size: 12px; color: #666; margin-top: 10px;">بواسطة شركة ai.prog</p>
-</div>
 
-<!-- شاشة التحميل والـ Matchmaking الذكي للأونلاين مع الـ if/else المبرمجة جوة الـ GUI -->
-<div id="matchmakingMenu" class="modal-screen" style="display: none; border-color: #00ffff; box-shadow: 0 0 30px rgba(0, 255, 255, 0.4);">
-    <h1>جاري الاتصال بالسيرفر...</h1>
-    <div style="margin: 20px 0;"><img src="https://i.gifer.com/ZZ5H.gif" width="50" alt="loading" style="filter: hue-rotate(180deg);"></div>
-    <p id="matchmakingStatus" style="color: #ffcc00; font-weight: bold;">جاري البحث عن لاعبين آخرين عبر الإنترنت...</p>
-    <p style="font-size: 14px; color: #aaa;">نظام شركة ai.prog للربط الذكي</p>
-</div>
-
-<!-- شاشة الخسارة الاحترافية مع الإحصائيات الفورية -->
-<div id="gameOverMenu" class="modal-screen" style="display: none;">
-    <h2>لقد خسرت! 💀</h2>
-    <p style="color: #aaa;">حظاً موفقاً في المرة القادمة</p>
-    
-    <div class="game-stats-box">
-        📏 طول الثعبان النهائي: <span id="finalLength">0</span> سطر<br>
-        🏆 مركزك في الجولة: <span id="finalRank">0</span><br>
-        🥇 أعلى سكور مسجل: <span id="finalBest">0</span>
+    <div class="btn-container">
+        <button class="menu-btn btn-offline" onclick="startGame(false)">لعب أوفلاين (مع البوتات) 🤖</button>
+        <button class="menu-btn btn-online" onclick="startMatchmaking()">لعب أونلاين (سيرفر حقيقي) 🌐</button>
     </div>
-    
-    <button class="menu-btn" onclick="restartGame()">إعادة المحاولة 🔄</button>
 </div>
 
+<!-- شاشة الخسارة الاحترافية -->
+<div id="gameOverScreen" class="modal-screen" style="display: none;">
+    <h2>لقد خسرت! 💀</h2>
+    <div class="rank-info">
+        🏆 المركز الحالي: <span id="finalRank">-</span><br>
+        📏 طول الثعبان: <span id="finalScore">-</span><br>
+        🔥 أعلى رقم قياسي (BEST): <span id="finalBest">-</span>
+    </div>
+    <button class="menu-btn btn-retry" onclick="restartGame()">إعادة المحاولة 🔄</button>
+</div>
+
+<!-- واجهة المستخدم أثناء اللعب -->
 <div id="ui">
     <div class="score-container">LENGTH: <span id="scoreVal">25</span></div>
     <div class="best-score-container">BEST: <span id="bestScoreVal">0</span></div>
@@ -213,8 +195,8 @@ let mouse = { x: 0, y: 0 };
 let player;
 let bots = [];
 let foods = [];
-let gameActive = false;
-let currentRank = 5;
+let gameStarted = false;
+let currentRank = 1;
 
 let bestScore = localStorage.getItem('asserSnakeBestScore') ? parseInt(localStorage.getItem('asserSnakeBestScore')) : 0;
 document.getElementById('bestScoreVal').innerText = bestScore;
@@ -335,7 +317,6 @@ class Worm {
 }
 
 function spawnSystem() {
-    if (!player) return;
     const head = player.segments[0];
     while (foods.length < 500) {
         foods.push({
@@ -363,7 +344,6 @@ function spawnSystem() {
 }
 
 function collisionSystem() {
-    if (!player || player.dead) return;
     const pHead = player.segments[0];
 
     if (pHead.x < 0 || pHead.x > WORLD_SIZE || pHead.y < 0 || pHead.y > WORLD_SIZE) {
@@ -395,8 +375,25 @@ function collisionSystem() {
     bots = bots.filter(b => !b.dead);
 }
 
+function triggerGameOver() {
+    if(player.dead) return;
+    player.die();
+    gameStarted = false;
+    
+    // عرض البيانات في شاشة الخسارة الاحترافية
+    document.getElementById('finalRank').innerText = currentRank + " من " + (bots.length + 1);
+    document.getElementById('finalScore').innerText = player.segments.length;
+    document.getElementById('finalBest').innerText = bestScore;
+    
+    // إخفاء الـ UI العادي وإظهار شاشة الخسارة
+    document.getElementById('ui').style.display = "none";
+    document.getElementById('leaderboard').style.display = "none";
+    document.getElementById('gameOverScreen').style.display = "block";
+}
+
 function updateLeaderboard() {
-    if (!gameActive || !player) return;
+    if (!gameStarted && player.dead) return;
+    
     let allPlayers = [];
     if (!player.dead) {
         allPlayers.push({ name: player.name, score: player.segments.length, isPlayer: true });
@@ -407,6 +404,10 @@ function updateLeaderboard() {
 
     allPlayers.sort((a, b) => b.score - a.score);
 
+    // معرفة مركز اللاعب الحالي
+    let pIndex = allPlayers.findIndex(p => p.isPlayer);
+    currentRank = pIndex !== -1 ? pIndex + 1 : currentRank;
+
     const lbList = document.getElementById('lbList');
     lbList.innerHTML = '';
 
@@ -416,7 +417,6 @@ function updateLeaderboard() {
         item.className = 'lb-item';
         if (p.isPlayer) {
             item.innerHTML = `<span class="lb-player">${i+1}. ${p.name} (أنت)</span> <span>${p.score}</span>`;
-            currentRank = i + 1;
         } else {
             item.innerHTML = `<span>${i+1}. ${p.name}</span> <span>${p.score}</span>`;
         }
@@ -426,81 +426,42 @@ function updateLeaderboard() {
 
 setInterval(updateLeaderboard, 500);
 
-// دالة تفعيل شاشة الخسارة الاحترافية الـ GUI بدون ريفريش كئيب للموقع
-function triggerGameOver() {
-    player.die();
-    gameActive = false;
+function startGame(isOnline) {
+    document.getElementById('startScreen').style.display = "none";
+    document.getElementById('ui').style.display = "block";
+    document.getElementById('leaderboard').style.display = "block";
     
-    document.getElementById('ui').style.display = 'none';
-    document.getElementById('leaderboard').style.display = 'none';
-    
-    document.getElementById('finalLength').innerText = player.segments.length;
-    document.getElementById('finalRank').innerText = currentRank + " / " + (bots.length + 1);
-    document.getElementById('finalBest').innerText = bestScore;
-    
-    document.getElementById('gameOverMenu').style.display = 'block';
+    // تعيين لون الثعبان المختار
+    player.color = document.getElementById("snakeColor").value;
+    gameStarted = true;
 }
 
-// نظام الـ Matchmaking الذكي والمنظم بقواعد الـ if/else الحقيقية لشركتنا جوة الـ GUI
-function startOnlineMatchmaking() {
-    document.getElementById('startMenu').style.display = 'none';
-    document.getElementById('matchmakingMenu').style.display = 'block';
+// تنفيذ الـ if/else الذكية للأونلاين (المحاكاة الشرطية)
+function startMatchmaking() {
+    const onlineBtn = document.querySelector('.btn-online');
+    onlineBtn.disabled = true;
+    onlineBtn.innerText = "البحث عن غرف (1/2)... ⏳";
     
-    let onlinePlayersCount = 1; // المحاكاة: أنت اللاعب الوحيد المتصل حالياً بالفرفة
-
-    // الخطوة 1: بدء فحص الغرفة والبحث
     setTimeout(() => {
-        document.getElementById('matchmakingStatus').innerText = "تم العثور على لاعب واحد فقط (أنت)... في انتظار لاعب ثانٍ...";
-    }, 2000);
-    
-    // الخطوة 2: تطبيق قاعدة الـ if / else بعد انتهاء وقت البحث المتاح
-    setTimeout(() => {
-        // الـ if/else الحقيقية اللي طلبتها يا آسر:
-        if (onlinePlayersCount >= 2) {
-            // كود تشغيل الغرفة الأونلاين الحقيقية
-            document.getElementById('matchmakingMenu').style.display = 'none';
-            startGame(true);
-        } else {
-            // الـ Else الذكية: مفيش لاعبين كفاية؟ حوله للبوتات فوراً برسالة شيك جوة الواجهة!
-            document.getElementById('matchmakingStatus').innerHTML = "<span style='color:#ff3366;'>تنبيه سيرفر ai.prog:</span> لم يكتمل العدد أونلاين حالياً. تفعيل وضع الـ Else والتحويل الذكي للروبوتات!";
-            
-            // دخول اللعبة تلقائياً بعد ثانيتين من قراءة التنبيه
-            setTimeout(() => {
-                document.getElementById('matchmakingMenu').style.display = 'none';
-                document.getElementById('matchmakingStatus').innerText = "جاري البحث عن لاعبين آخرين عبر الإنترنت..."; // إعادة تهيئة النص للمرة القادمة
-                startGame(false);
-            }, 2000);
-        }
-    }, 4500);
-}
-
-function startGame(isOnlineMode) {
-    document.getElementById('startMenu').style.display = 'none';
-    document.getElementById('ui').style.display = 'block';
-    document.getElementById('leaderboard').style.display = 'block';
-    
-    const chosenColor = document.getElementById('snakeColor').value;
-    player = new Worm(WORLD_SIZE/2, WORLD_SIZE/2, chosenColor, "Asser", false);
-    
-    // تفريغ المصفوفات القديمة لتجنب تكرار الكائنات والـ Lag
-    bots = [];
-    foods = [];
-    
-    gameActive = true;
+        // شرط المحاكاة: لعدم وجود لاعب ثانٍ حالياً، يتم تنفيذ الـ else للعب مع البوتات
+        alert("لم يتم العثور على لاعبين كافيين أونلاين حالياً! تم تحويلك للعب أوفلاين مع البوتات بواسطة شركة ai.prog 🚀");
+        startGame(false);
+    }, 3000);
 }
 
 function restartGame() {
-    document.getElementById('gameOverMenu').style.display = 'none';
-    document.getElementById('startMenu').style.block = 'block';
-    // سطر تصحيحي للتأكد من ظهور شاشة البداية بسلاسة
-    document.getElementById('startMenu').style.display = 'block'; 
+    document.getElementById('gameOverScreen').style.display = "none";
+    foods = [];
+    bots = [];
+    player = new Worm(WORLD_SIZE/2, WORLD_SIZE/2, document.getElementById("snakeColor").value, "Asser", false);
+    startGame(false);
 }
 
 function gameLoop() {
     width = canvas.width = window.innerWidth;
     height = canvas.height = window.innerHeight;
 
-    if (gameActive && player) {
+    if (gameStarted) {
         spawnSystem();
         collisionSystem();
         player.update();
@@ -510,27 +471,27 @@ function gameLoop() {
     ctx.fillStyle = "#050505";
     ctx.fillRect(0, 0, width, height);
 
-    if (player) {
-        const camX = player.segments[0].x - width / 2;
-        const camY = player.segments[0].y - height / 2;
+    const camX = player.segments[0].x - width / 2;
+    const camY = player.segments[0].y - height / 2;
 
-        ctx.strokeStyle = "#111";
-        ctx.lineWidth = 2;
-        for (let x = 0; x < WORLD_SIZE; x += 200) {
-            ctx.beginPath(); ctx.moveTo(x - camX, -camY); ctx.lineTo(x - camX, WORLD_SIZE - camY); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(-camX, x - camY); ctx.lineTo(WORLD_SIZE - camX, x - camY); ctx.stroke();
-        }
+    ctx.strokeStyle = "#111";
+    ctx.lineWidth = 2;
+    for (let x = 0; x < WORLD_SIZE; x += 200) {
+        ctx.beginPath(); ctx.moveTo(x - camX, -camY); ctx.lineTo(x - camX, WORLD_SIZE - camY); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(-camX, x - camY); ctx.lineTo(WORLD_SIZE - camX, x - camY); ctx.stroke();
+    }
 
-        foods.forEach(f => {
-            ctx.fillStyle = f.color;
-            ctx.beginPath();
-            ctx.arc(f.x - camX, f.y - camY, f.size, 0, Math.PI * 2);
-            ctx.fill();
-        });
+    foods.forEach(f => {
+        ctx.fillStyle = f.color;
+        ctx.beginPath();
+        ctx.arc(f.x - camX, f.y - camY, f.size, 0, Math.PI * 2);
+        ctx.fill();
+    });
 
-        bots.forEach(b => b.draw(camX, camY));
-        if(!player.dead) player.draw(camX, camY);
+    bots.forEach(b => b.draw(camX, camY));
+    if(!player.dead) player.draw(camX, camY);
 
+    if (gameStarted) {
         const currentScore = player.segments.length;
         document.getElementById('scoreVal').innerText = currentScore;
         document.getElementById('botCount').innerText = bots.length;
@@ -550,15 +511,15 @@ window.addEventListener('mousemove', e => {
     mouse.y = e.clientY;
 });
 
-// تفعيل اللمس للهواتف الذكية لضمان التجاوب الفوري (Touch Events Scaling)
+// دعم اللمس للموبايل
 window.addEventListener('touchmove', e => {
     if(e.touches.length > 0) {
         mouse.x = e.touches[0].clientX;
         mouse.y = e.touches[0].clientY;
     }
-}, {passive: true});
+});
 
-// بدء حلقة اللعبة ولكن إبقاء التحكم مغلقاً لحين تفاعل القائمة الرئيسية
+player = new Worm(WORLD_SIZE/2, WORLD_SIZE/2, "#00ffff", "Asser", false);
 gameLoop();
 </script>
 </body>
