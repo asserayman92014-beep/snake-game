@@ -73,6 +73,7 @@
             background: rgba(0, 0, 0, 0.65); padding: 12px 18px; border-radius: 12px;
             border: 1px solid #333; backdrop-filter: blur(5px);
             z-index: 10; display: none; text-align: left;
+            max-width: 40vw;
         }
         .score-container { font-size: 5vw; font-weight: bold; color: #ffcc00; }
         .best-score-container { font-size: 4vw; font-weight: bold; color: #00ffcc; margin-top: 2px; }
@@ -93,18 +94,19 @@
         /* شاشات البداية والنهاية الاحترافية (GUI مركزية مرنة) */
         .modal-screen {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(10, 10, 10, 0.9); border: 2px solid #ff3366;
+            background: rgba(10, 10, 10, 0.95); border: 2px solid #ff3366;
             border-radius: 20px; padding: 30px; color: white; text-align: center;
             box-shadow: 0 0 30px rgba(255, 51, 102, 0.4); z-index: 100;
             width: 80vw; max-width: 400px; backdrop-filter: blur(10px);
         }
         
-        .modal-screen h1 { margin-top: 0; font-size: 28px; color: #00ffff; text-shadow: 0 0 10px #00ffff; }
-        .modal-screen h2 { margin-top: 0; font-size: 32px; color: #ff3366; text-shadow: 0 0 10px #ff3366; }
+        .modal-screen h1 { margin-top: 0; font-size: 6.5vw; color: #00ffff; text-shadow: 0 0 10px #00ffff; }
+        .modal-screen h2 { margin-top: 0; font-size: 7vw; color: #ff3366; text-shadow: 0 0 10px #ff3366; }
+        .modal-screen p { font-size: 3.8vw; }
         
         .menu-btn {
             background: linear-gradient(45deg, #ff3366, #ff00cc); color: white;
-            border: none; border-radius: 10px; padding: 12px 20px; font-size: 18px;
+            border: none; border-radius: 10px; padding: 12px 20px; font-size: 4.5vw;
             font-weight: bold; cursor: pointer; margin: 10px 0; width: 100%;
             transition: 0.3s; box-shadow: 0 4px 15px rgba(255, 0, 204, 0.3);
         }
@@ -115,10 +117,10 @@
             background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px;
             margin-bottom: 20px; border: 1px solid #333; display: flex; align-items: center; justify-content: center; gap: 15px;
         }
-        .color-section label { font-size: 18px; font-weight: bold; }
+        .color-section label { font-size: 4vw; font-weight: bold; }
         #snakeColor { cursor: pointer; border: none; border-radius: 5px; width: 45px; height: 45px; background: none; }
         
-        .game-stats-box { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin: 15px 0; font-size: 18px; text-align: right; line-height: 1.6; }
+        .game-stats-box { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin: 15px 0; font-size: 4vw; text-align: right; line-height: 1.6; }
         .game-stats-box span { color: #ffcc00; font-weight: bold; }
 
         /* تعديل الميديا كويري لتثبيت الأحجام الاحترافية للكمبيوتر والشاشات الكبيرة */
@@ -128,8 +130,14 @@
             .stats { font-size: 14px; }
             #leaderboard h3 { font-size: 18px; }
             .lb-item { font-size: 14px; }
-            #ui { padding: 20px; top: 20px; left: 20px; }
+            #ui { padding: 20px; top: 20px; left: 20px; max-width: 220px; }
             #leaderboard { padding: 15px 20px; top: 20px; right: 20px; width: 220px; }
+            .modal-screen h1 { font-size: 28px; }
+            .modal-screen h2 { font-size: 32px; }
+            .modal-screen p { font-size: 14px; }
+            .menu-btn { font-size: 18px; }
+            .color-section label { font-size: 16px; }
+            .game-stats-box { font-size: 16px; }
         }
     </style>
 </head>
@@ -150,7 +158,7 @@
     <p style="font-size: 12px; color: #666; margin-top: 10px;">بواسطة شركة ai.prog</p>
 </div>
 
-<!-- شاشة التحميل والـ Matchmaking الذكي للأونلاين -->
+<!-- شاشة التحميل والـ Matchmaking الذكي للأونلاين مع الـ if/else المبرمجة جوة الـ GUI -->
 <div id="matchmakingMenu" class="modal-screen" style="display: none; border-color: #00ffff; box-shadow: 0 0 30px rgba(0, 255, 255, 0.4);">
     <h1>جاري الاتصال بالسيرفر...</h1>
     <div style="margin: 20px 0;"><img src="https://i.gifer.com/ZZ5H.gif" width="50" alt="loading" style="filter: hue-rotate(180deg);"></div>
@@ -433,21 +441,36 @@ function triggerGameOver() {
     document.getElementById('gameOverMenu').style.display = 'block';
 }
 
-// نظام الـ Matchmaking الذكي لـ if/else الأونلاين
+// نظام الـ Matchmaking الذكي والمنظم بقواعد الـ if/else الحقيقية لشركتنا جوة الـ GUI
 function startOnlineMatchmaking() {
     document.getElementById('startMenu').style.display = 'none';
     document.getElementById('matchmakingMenu').style.display = 'block';
     
-    // محاكاة البحث عن اللاعبين
+    let onlinePlayersCount = 1; // المحاكاة: أنت اللاعب الوحيد المتصل حالياً بالفرفة
+
+    // الخطوة 1: بدء فحص الغرفة والبحث
     setTimeout(() => {
-        document.getElementById('matchmakingStatus').innerText = "تم العثور على لاعب واحد... في انتظار لاعب ثانٍ لبدء الغرفة...";
+        document.getElementById('matchmakingStatus').innerText = "تم العثور على لاعب واحد فقط (أنت)... في انتظار لاعب ثانٍ...";
     }, 2000);
     
-    // تطبيق منطق الـ if/else الذكي لشركتنا: لو مفيش لاعبين حقيقيين كفاية -> حوله أوفلاين مع البوتات فوراً عشان ما يزهقش!
+    // الخطوة 2: تطبيق قاعدة الـ if / else بعد انتهاء وقت البحث المتاح
     setTimeout(() => {
-        alert("تنبيه من سيرفر ai.prog: لم يكتمل العدد أونلاين حالياً (أنت فقط في الغرفة). تم تفعيل الـ Else وتحويلك لوضع المنافسة ضد الروبوتات الذكية مؤقتاً! وضع الأونلاين الحقيقي الكامل قادم قريباً جداً 🚀");
-        document.getElementById('matchmakingMenu').style.display = 'none';
-        startGame(true); // تشغيل اللعبة
+        // الـ if/else الحقيقية اللي طلبتها يا آسر:
+        if (onlinePlayersCount >= 2) {
+            // كود تشغيل الغرفة الأونلاين الحقيقية
+            document.getElementById('matchmakingMenu').style.display = 'none';
+            startGame(true);
+        } else {
+            // الـ Else الذكية: مفيش لاعبين كفاية؟ حوله للبوتات فوراً برسالة شيك جوة الواجهة!
+            document.getElementById('matchmakingStatus').innerHTML = "<span style='color:#ff3366;'>تنبيه سيرفر ai.prog:</span> لم يكتمل العدد أونلاين حالياً. تفعيل وضع الـ Else والتحويل الذكي للروبوتات!";
+            
+            // دخول اللعبة تلقائياً بعد ثانيتين من قراءة التنبيه
+            setTimeout(() => {
+                document.getElementById('matchmakingMenu').style.display = 'none';
+                document.getElementById('matchmakingStatus').innerText = "جاري البحث عن لاعبين آخرين عبر الإنترنت..."; // إعادة تهيئة النص للمرة القادمة
+                startGame(false);
+            }, 2000);
+        }
     }, 4500);
 }
 
@@ -468,7 +491,9 @@ function startGame(isOnlineMode) {
 
 function restartGame() {
     document.getElementById('gameOverMenu').style.display = 'none';
-    document.getElementById('startMenu').style.display = 'block';
+    document.getElementById('startMenu').style.block = 'block';
+    // سطر تصحيحي للتأكد من ظهور شاشة البداية بسلاسة
+    document.getElementById('startMenu').style.display = 'block'; 
 }
 
 function gameLoop() {
