@@ -52,7 +52,7 @@
         }
     </script>
 
-    <!-- الـ Open Graph (عشان لما تشير الرابط على الواتساب أو الفيسبوك يظهر بشكل احترافي) -->
+    <!-- الـ Open Graph -->
     <meta property="og:title" content="Snake Game | لعبة ثعبان حماسية | Asser Snake Evolution">
     <meta property="og:description" content="العب لعبة الثعبان الحماسية المطورة مجاناً على الإنترنت! تجربة أسطورية وممتعة من تطوير آسر.">
     <meta property="og:image" content="favicon.png.jpeg">
@@ -63,41 +63,115 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5028170875818281" crossorigin="anonymous"></script>
     
     <style>
-        body { margin: 0; overflow: hidden; background: #050505; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { margin: 0; overflow: hidden; background: #050505; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; direction: rtl; }
         canvas { display: block; cursor: crosshair; }
-        #ui {
-            position: absolute; top: 20px; left: 20px; color: white;
-            pointer-events: none; user-select: none;
-            background: rgba(0, 0, 0, 0.6); padding: 20px; border-radius: 15px;
-            border: 1px solid #333; backdrop-filter: blur(5px);
-            z-index: 10;
-        }
-        .score-container { font-size: 24px; font-weight: bold; color: #ffcc00; }
-        .best-score-container { font-size: 18px; font-weight: bold; color: #00ffcc; margin-top: 2px; }
-        .stats { font-size: 14px; color: #aaa; margin-top: 5px; }
         
-        #leaderboard {
-            position: absolute; top: 20px; right: 20px; color: white;
-            background: rgba(0, 0, 0, 0.75); padding: 15px 20px; border-radius: 15px;
-            border: 1px solid #444; backdrop-filter: blur(5px); width: 220px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.5); pointer-events: none; user-select: none;
-            z-index: 10;
+        /* تصميم الـ UI العلوي ليكون مرناً على الموبايل والكمبيوتر */
+        #ui {
+            position: absolute; top: 15px; left: 15px; color: white;
+            pointer-events: none; user-select: none;
+            background: rgba(0, 0, 0, 0.65); padding: 12px 18px; border-radius: 12px;
+            border: 1px solid #333; backdrop-filter: blur(5px);
+            z-index: 10; display: none; text-align: left;
         }
-        #leaderboard h3 { margin: 0 0 10px 0; text-align: center; color: #ff3366; font-size: 18px; border-bottom: 1px solid #444; padding-bottom: 5px; }
-        .lb-item { display: flex; justify-content: space-between; margin: 4px 0; font-size: 14px; }
+        .score-container { font-size: 5vw; font-weight: bold; color: #ffcc00; }
+        .best-score-container { font-size: 4vw; font-weight: bold; color: #00ffcc; margin-top: 2px; }
+        .stats { font-size: 3vw; color: #aaa; margin-top: 5px; }
+        
+        /* لوحة الصدارة المرنة */
+        #leaderboard {
+            position: absolute; top: 15px; right: 15px; color: white;
+            background: rgba(0, 0, 0, 0.75); padding: 12px 15px; border-radius: 12px;
+            border: 1px solid #444; backdrop-filter: blur(5px); width: 35vw; max-width: 220px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5); pointer-events: none; user-select: none;
+            z-index: 10; display: none; text-align: right;
+        }
+        #leaderboard h3 { margin: 0 0 8px 0; text-align: center; color: #ff3366; font-size: 4.5vw; border-bottom: 1px solid #444; padding-bottom: 5px; }
+        .lb-item { display: flex; justify-content: space-between; margin: 5px 0; font-size: 3.5vw; direction: ltr; }
         .lb-player { color: #00ffff; font-weight: bold; }
 
-        #colorPickerContainer {
-            position: absolute; bottom: 20px; left: 20px; color: white;
-            background: rgba(0, 0, 0, 0.6); padding: 10px 15px; border-radius: 10px;
-            border: 1px solid #333; backdrop-filter: blur(5px); display: flex; align-items: center;
-            z-index: 10;
+        /* شاشات البداية والنهاية الاحترافية (GUI مركزية مرنة) */
+        .modal-screen {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(10, 10, 10, 0.9); border: 2px solid #ff3366;
+            border-radius: 20px; padding: 30px; color: white; text-align: center;
+            box-shadow: 0 0 30px rgba(255, 51, 102, 0.4); z-index: 100;
+            width: 80vw; max-width: 400px; backdrop-filter: blur(10px);
         }
-        #colorPickerContainer label { font-size: 14px; font-weight: bold; margin-right: 10px; }
-        #snakeColor { cursor: pointer; border: none; border-radius: 5px; width: 35px; height: 35px; background: none; }
+        
+        .modal-screen h1 { margin-top: 0; font-size: 28px; color: #00ffff; text-shadow: 0 0 10px #00ffff; }
+        .modal-screen h2 { margin-top: 0; font-size: 32px; color: #ff3366; text-shadow: 0 0 10px #ff3366; }
+        
+        .menu-btn {
+            background: linear-gradient(45deg, #ff3366, #ff00cc); color: white;
+            border: none; border-radius: 10px; padding: 12px 20px; font-size: 18px;
+            font-weight: bold; cursor: pointer; margin: 10px 0; width: 100%;
+            transition: 0.3s; box-shadow: 0 4px 15px rgba(255, 0, 204, 0.3);
+        }
+        .menu-btn.online { background: linear-gradient(45deg, #00ffff, #0066ff); box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3); }
+        .menu-btn:hover { transform: scale(1.03); filter: brightness(1.2); }
+        
+        .color-section {
+            background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px;
+            margin-bottom: 20px; border: 1px solid #333; display: flex; align-items: center; justify-content: center; gap: 15px;
+        }
+        .color-section label { font-size: 18px; font-weight: bold; }
+        #snakeColor { cursor: pointer; border: none; border-radius: 5px; width: 45px; height: 45px; background: none; }
+        
+        .game-stats-box { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin: 15px 0; font-size: 18px; text-align: right; line-height: 1.6; }
+        .game-stats-box span { color: #ffcc00; font-weight: bold; }
+
+        /* تعديل الميديا كويري لتثبيت الأحجام الاحترافية للكمبيوتر والشاشات الكبيرة */
+        @media (min-width: 768px) {
+            .score-container { font-size: 24px; }
+            .best-score-container { font-size: 18px; }
+            .stats { font-size: 14px; }
+            #leaderboard h3 { font-size: 18px; }
+            .lb-item { font-size: 14px; }
+            #ui { padding: 20px; top: 20px; left: 20px; }
+            #leaderboard { padding: 15px 20px; top: 20px; right: 20px; width: 220px; }
+        }
     </style>
 </head>
 <body>
+
+<!-- شاشة البداية الاحترافية اختيار اللون والوضع -->
+<div id="startMenu" class="modal-screen">
+    <h1>Asser Snake Evolution</h1>
+    <p style="color: #aaa; margin-bottom: 20px;">مرحباً بك في لعبة الثعبان الأسطورية المطورة</p>
+    
+    <div class="color-section">
+        <label for="snakeColor">🎨 اختر لون ثعبانك:</label>
+        <input type="color" id="snakeColor" value="#00ffff">
+    </div>
+    
+    <button class="menu-btn" onclick="startGame(false)">لعب أوفلاين (مع البوتات) 🤖</button>
+    <button class="menu-btn online" onclick="startOnlineMatchmaking()">لعب أونلاين (قريباً) 🌐</button>
+    <p style="font-size: 12px; color: #666; margin-top: 10px;">بواسطة شركة ai.prog</p>
+</div>
+
+<!-- شاشة التحميل والـ Matchmaking الذكي للأونلاين -->
+<div id="matchmakingMenu" class="modal-screen" style="display: none; border-color: #00ffff; box-shadow: 0 0 30px rgba(0, 255, 255, 0.4);">
+    <h1>جاري الاتصال بالسيرفر...</h1>
+    <div style="margin: 20px 0;"><img src="https://i.gifer.com/ZZ5H.gif" width="50" alt="loading" style="filter: hue-rotate(180deg);"></div>
+    <p id="matchmakingStatus" style="color: #ffcc00; font-weight: bold;">جاري البحث عن لاعبين آخرين عبر الإنترنت...</p>
+    <p style="font-size: 14px; color: #aaa;">نظام شركة ai.prog للربط الذكي</p>
+</div>
+
+<!-- شاشة الخسارة الاحترافية مع الإحصائيات الفورية -->
+<div id="gameOverMenu" class="modal-screen" style="display: none;">
+    <h2>لقد خسرت! 💀</h2>
+    <p style="color: #aaa;">حظاً موفقاً في المرة القادمة</p>
+    
+    <div class="game-stats-box">
+        📏 طول الثعبان النهائي: <span id="finalLength">0</span> سطر<br>
+        🏆 مركزك في الجولة: <span id="finalRank">0</span><br>
+        🥇 أعلى سكور مسجل: <span id="finalBest">0</span>
+    </div>
+    
+    <button class="menu-btn" onclick="restartGame()">إعادة المحاولة 🔄</button>
+</div>
+
 <div id="ui">
     <div class="score-container">LENGTH: <span id="scoreVal">25</span></div>
     <div class="best-score-container">BEST: <span id="bestScoreVal">0</span></div>
@@ -111,20 +185,15 @@
     <h3>🏆 Leaderboard</h3>
     <div id="lbList"></div>
 </div>
-
-<div id="colorPickerContainer">
-    <label for="snakeColor">🎨 لون ثعبانك:</label>
-    <input type="color" id="snakeColor" value="#00ffff">
-</div>
    
 <canvas id="gameCanvas"></canvas>
 
 <script>
 const WORLD_SIZE = 15000;      
 const VIEW_DISTANCE = 1000;    
-const MAX_BOTS_NEARBY = 18;    // تم تعديلها لـ 18 لمنع التقطيع والـ Lag تماماً
-const BASE_SPEED = 4;        // تم رفع السرعة لـ 5.5 لتصبح اللعبة طيارة وحماسية
-const TURN_SPEED = 0.5;       // تم تعديل سرعة الدوران لتناسب السرعة الجديدة بسلاسة
+const MAX_BOTS_NEARBY = 18;    
+const BASE_SPEED = 5.5;        
+const TURN_SPEED = 0.12;       
 
 const botNames = ["البرق ⚡", "الزلزال 🌋", "الصياد 🏹", "التنين 🐉", "النجم ⭐", "المحارب ⚔️", "الرعد ⛈️", "الملك 👑", "آكل النقط 🍎", "الهروب الكبير 🏃", "شبح الليل 👻"];
 
@@ -136,6 +205,8 @@ let mouse = { x: 0, y: 0 };
 let player;
 let bots = [];
 let foods = [];
+let gameActive = false;
+let currentRank = 5;
 
 let bestScore = localStorage.getItem('asserSnakeBestScore') ? parseInt(localStorage.getItem('asserSnakeBestScore')) : 0;
 document.getElementById('bestScoreVal').innerText = bestScore;
@@ -256,6 +327,7 @@ class Worm {
 }
 
 function spawnSystem() {
+    if (!player) return;
     const head = player.segments[0];
     while (foods.length < 500) {
         foods.push({
@@ -283,11 +355,11 @@ function spawnSystem() {
 }
 
 function collisionSystem() {
+    if (!player || player.dead) return;
     const pHead = player.segments[0];
 
     if (pHead.x < 0 || pHead.x > WORLD_SIZE || pHead.y < 0 || pHead.y > WORLD_SIZE) {
-        player.die();
-        location.reload();
+        triggerGameOver();
     }
 
     for (let b of bots) {
@@ -295,8 +367,7 @@ function collisionSystem() {
 
         for (let i = 0; i < b.segments.length; i++) {
             if (getDist(pHead.x, pHead.y, b.segments[i].x, b.segments[i].y) < player.radius + b.radius - 2) {
-                player.die();
-                setTimeout(() => location.reload(), 1000);
+                triggerGameOver();
             }
         }
         
@@ -317,6 +388,7 @@ function collisionSystem() {
 }
 
 function updateLeaderboard() {
+    if (!gameActive || !player) return;
     let allPlayers = [];
     if (!player.dead) {
         allPlayers.push({ name: player.name, score: player.segments.length, isPlayer: true });
@@ -336,6 +408,7 @@ function updateLeaderboard() {
         item.className = 'lb-item';
         if (p.isPlayer) {
             item.innerHTML = `<span class="lb-player">${i+1}. ${p.name} (أنت)</span> <span>${p.score}</span>`;
+            currentRank = i + 1;
         } else {
             item.innerHTML = `<span>${i+1}. ${p.name}</span> <span>${p.score}</span>`;
         }
@@ -345,46 +418,103 @@ function updateLeaderboard() {
 
 setInterval(updateLeaderboard, 500);
 
+// دالة تفعيل شاشة الخسارة الاحترافية الـ GUI بدون ريفريش كئيب للموقع
+function triggerGameOver() {
+    player.die();
+    gameActive = false;
+    
+    document.getElementById('ui').style.display = 'none';
+    document.getElementById('leaderboard').style.display = 'none';
+    
+    document.getElementById('finalLength').innerText = player.segments.length;
+    document.getElementById('finalRank').innerText = currentRank + " / " + (bots.length + 1);
+    document.getElementById('finalBest').innerText = bestScore;
+    
+    document.getElementById('gameOverMenu').style.display = 'block';
+}
+
+// نظام الـ Matchmaking الذكي لـ if/else الأونلاين
+function startOnlineMatchmaking() {
+    document.getElementById('startMenu').style.display = 'none';
+    document.getElementById('matchmakingMenu').style.display = 'block';
+    
+    // محاكاة البحث عن اللاعبين
+    setTimeout(() => {
+        document.getElementById('matchmakingStatus').innerText = "تم العثور على لاعب واحد... في انتظار لاعب ثانٍ لبدء الغرفة...";
+    }, 2000);
+    
+    // تطبيق منطق الـ if/else الذكي لشركتنا: لو مفيش لاعبين حقيقيين كفاية -> حوله أوفلاين مع البوتات فوراً عشان ما يزهقش!
+    setTimeout(() => {
+        alert("تنبيه من سيرفر ai.prog: لم يكتمل العدد أونلاين حالياً (أنت فقط في الغرفة). تم تفعيل الـ Else وتحويلك لوضع المنافسة ضد الروبوتات الذكية مؤقتاً! وضع الأونلاين الحقيقي الكامل قادم قريباً جداً 🚀");
+        document.getElementById('matchmakingMenu').style.display = 'none';
+        startGame(true); // تشغيل اللعبة
+    }, 4500);
+}
+
+function startGame(isOnlineMode) {
+    document.getElementById('startMenu').style.display = 'none';
+    document.getElementById('ui').style.display = 'block';
+    document.getElementById('leaderboard').style.display = 'block';
+    
+    const chosenColor = document.getElementById('snakeColor').value;
+    player = new Worm(WORLD_SIZE/2, WORLD_SIZE/2, chosenColor, "Asser", false);
+    
+    // تفريغ المصفوفات القديمة لتجنب تكرار الكائنات والـ Lag
+    bots = [];
+    foods = [];
+    
+    gameActive = true;
+}
+
+function restartGame() {
+    document.getElementById('gameOverMenu').style.display = 'none';
+    document.getElementById('startMenu').style.display = 'block';
+}
+
 function gameLoop() {
     width = canvas.width = window.innerWidth;
     height = canvas.height = window.innerHeight;
 
-    spawnSystem();
-    collisionSystem();
-    player.update();
-    bots.forEach(b => b.update());
+    if (gameActive && player) {
+        spawnSystem();
+        collisionSystem();
+        player.update();
+        bots.forEach(b => b.update());
+    }
 
     ctx.fillStyle = "#050505";
     ctx.fillRect(0, 0, width, height);
 
-    const camX = player.segments[0].x - width / 2;
-    const camY = player.segments[0].y - height / 2;
+    if (player) {
+        const camX = player.segments[0].x - width / 2;
+        const camY = player.segments[0].y - height / 2;
 
-    ctx.strokeStyle = "#111";
-    ctx.lineWidth = 2;
-    for (let x = 0; x < WORLD_SIZE; x += 200) {
-        ctx.beginPath(); ctx.moveTo(x - camX, -camY); ctx.lineTo(x - camX, WORLD_SIZE - camY); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(-camX, x - camY); ctx.lineTo(WORLD_SIZE - camX, x - camY); ctx.stroke();
-    }
+        ctx.strokeStyle = "#111";
+        ctx.lineWidth = 2;
+        for (let x = 0; x < WORLD_SIZE; x += 200) {
+            ctx.beginPath(); ctx.moveTo(x - camX, -camY); ctx.lineTo(x - camX, WORLD_SIZE - camY); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(-camX, x - camY); ctx.lineTo(WORLD_SIZE - camX, x - camY); ctx.stroke();
+        }
 
-    foods.forEach(f => {
-        ctx.fillStyle = f.color;
-        ctx.beginPath();
-        ctx.arc(f.x - camX, f.y - camY, f.size, 0, Math.PI * 2);
-        ctx.fill();
-    });
+        foods.forEach(f => {
+            ctx.fillStyle = f.color;
+            ctx.beginPath();
+            ctx.arc(f.x - camX, f.y - camY, f.size, 0, Math.PI * 2);
+            ctx.fill();
+        });
 
-    bots.forEach(b => b.draw(camX, camY));
-    if(!player.dead) player.draw(camX, camY);
+        bots.forEach(b => b.draw(camX, camY));
+        if(!player.dead) player.draw(camX, camY);
 
-    const currentScore = player.segments.length;
-    document.getElementById('scoreVal').innerText = currentScore;
-    document.getElementById('botCount').innerText = bots.length;
+        const currentScore = player.segments.length;
+        document.getElementById('scoreVal').innerText = currentScore;
+        document.getElementById('botCount').innerText = bots.length;
 
-    if (currentScore > bestScore) {
-        bestScore = currentScore;
-        localStorage.setItem('asserSnakeBestScore', bestScore);
-        document.getElementById('bestScoreVal').innerText = bestScore;
+        if (currentScore > bestScore) {
+            bestScore = currentScore;
+            localStorage.setItem('asserSnakeBestScore', bestScore);
+            document.getElementById('bestScoreVal').innerText = bestScore;
+        }
     }
 
     requestAnimationFrame(gameLoop);
@@ -395,7 +525,15 @@ window.addEventListener('mousemove', e => {
     mouse.y = e.clientY;
 });
 
-player = new Worm(WORLD_SIZE/2, WORLD_SIZE/2, "#00ffff", "Asser", false);
+// تفعيل اللمس للهواتف الذكية لضمان التجاوب الفوري (Touch Events Scaling)
+window.addEventListener('touchmove', e => {
+    if(e.touches.length > 0) {
+        mouse.x = e.touches[0].clientX;
+        mouse.y = e.touches[0].clientY;
+    }
+}, {passive: true});
+
+// بدء حلقة اللعبة ولكن إبقاء التحكم مغلقاً لحين تفاعل القائمة الرئيسية
 gameLoop();
 </script>
 </body>
