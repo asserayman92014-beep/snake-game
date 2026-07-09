@@ -504,5 +504,25 @@ window.addEventListener('touchmove', e => {
 player = new Worm(WORLD_SIZE/2, WORLD_SIZE/2, "#00ffff", "Asser", false);
 gameLoop();
 </script>
+    <div id="secret-panel">
+    <button id="secret-btn" onclick="toggleCounter()">.</button>
+    <div id="counter-box" style="display: none;">
+        <p>عدد زوار اللعبة الحقيقي:</p>
+        <a href="https://www.hitwebcounter.com" target="_blank">
+        <img src="https://hitwebcounter.com/counter/counter.php?page=asser_snake_game_secret" title="Counter Users" Alt="Visit Counter" border="0" /></a>
+    </div>
+</div>
+
+<script>
+// الكود البرمجي اللي بيخفي ويظهر العداد لما تضغط على النقطة السرية
+function toggleCounter() {
+    var box = document.getElementById("counter-box");
+    if (box.style.display === "none") {
+        box.style.display = "block";  
+    } else {
+        box.style.display = "none";   
+    }
+}
+</script>
 </body>
 </html>
