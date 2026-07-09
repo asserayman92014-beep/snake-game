@@ -525,5 +525,69 @@ function toggleCounter() {
     }
 }
 </script>
+    [8:18 pm, 09/07/2026] asser ayman: <div id="secret-panel">
+    <button id="secret-btn" onclick="toggleCounter()">.</button>
+    <div id="counter-box" style="display: none;">
+        <p>عدد زوار اللعبة الحقيقي:</p>
+        <a href="https://www.hitwebcounter.com" target="_blank">
+        <img src="https://hitwebcounter.com/counter/counter.php?page=asser_snake_game_secret" title="Counter Users" Alt="Visit Counter" border="0" /></a>
+    </div>
+</div>
+
+<script>
+// الكود البرمجي اللي بيخفي ويظهر العداد لما تضغط على النقطة السرية
+function toggleCounter() {
+    var box = document.getElementById("counter-box");
+    if (box.style.display === "none") {
+        box.style.display = "block";  
+    } else {
+        box.style.display = "none";   
+    }
+}
+</script>
+[8:28 pm, 09/07/2026] asser ayman: <img src="your-logo-path.png" id="game-logo" onclick="toggleCounter()" alt="Snake Logo">
+[8:31 pm, 09/07/2026] asser ayman: <img src="favicon.png.jpeg" id="game-logo" onclick="toggleCounter()" alt="Logo" style="width: 80px; height: 80px; margin-bottom: 10px;">
+[8:38 pm, 09/07/2026] asser ayman: <div id="counter-box" style="display: none;">
+    <p style="margin: 0 0 10px 0; font-weight: bold;">عدد زوار اللعبة الحقيقي:</p>
+    <a href="https://www.hitwebcounter.com" target="_blank">
+    <img src="https://hitwebcounter.com/counter/counter.php?page=asser_snake_game_secret" title="Counter Users" Alt="Visit Counter" border="0" /></a>
+</div>
+
+<style>
+#counter-box {
+    position: fixed;
+    bottom: 5vh;
+    right: 5vw;
+    z-index: 99999; /* عشان يظهر فوق كل حاجة في اللعبة غصب عنه */
+    background: rgba(0, 0, 0, 0.95);
+    border: 2px solid #00ff00;
+    padding: 15px;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 16px;
+    text-align: center;
+    box-shadow: 0px 0px 15px #00ff00;
+    font-family: sans-serif;
+}
+#counter-box img {
+    max-width: 100%;
+    height: auto;
+}
+#game-logo {
+    cursor: pointer; /* بيخلي الماوس يتحول لشكل إيد لما تقف على الأيقونة */
+}
+</style>
+
+<script>
+// الدالة السحرية اللي بتشغل الضغطة وتظهر العداد
+function toggleCounter() {
+    var box = document.getElementById("counter-box");
+    if (box.style.display === "none") {
+        box.style.display = "block";  /* يظهر */
+    } else {
+        box.style.display = "none";   /* يختفي */
+    }
+}
+</script>
 </body>
 </html>
